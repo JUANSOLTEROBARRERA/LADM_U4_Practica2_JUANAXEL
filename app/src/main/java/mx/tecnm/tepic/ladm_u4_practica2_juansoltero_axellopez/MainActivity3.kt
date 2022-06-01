@@ -1,6 +1,7 @@
 package mx.tecnm.tepic.ladm_u4_practica2_juansoltero_axellopez
 
 import android.app.ProgressDialog
+import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -8,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -28,7 +30,10 @@ class MainActivity3 : AppCompatActivity() {
 
     lateinit var binding: ActivityMain3Binding
     lateinit var imagen: Uri
+    var muestrabotones = false
     var elegido = ""
+    var estregistro = ""
+    var contador = 1
     var listaNombres = ArrayList<String>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,9 +43,58 @@ class MainActivity3 : AppCompatActivity() {
 
 
         elegido = intent.extras!!.getString("idEvento")!!
+
+        //Toast.makeText(this, "${estregistro}",Toast.LENGTH_LONG).show()
+
+        //consulta
+
+        //---------------------------
+        val consulta = FirebaseDatabase.getInstance().getReference().child("eventos")
+        var contadoor = 1
+        var verdad = "true"
+        val postListener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+
+                for(data in snapshot.children!!){
+
+                    var id = data.key
+                    var estadoo = data.getValue<Evento>()!!.estado
+
+
+                    if(id.toString()==elegido){
+
+                        //var ok1 = estadoo.toString().substring(0,4)
+                        System.out.println("${contadoor++}    ${estadoo}")
+                        //mostrarMensaje("${contadoor++}","true")
+
+                        if(verdad?.equals(estadoo.toString())   ?: (estadoo === null)) {
+                            System.out.println("CAMBIO ESTADO DE BANDERA")
+                            muestrabotones = true
+                        }
+                    }
+
+
+                }
+                visibilidadbotones()
+
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+
+            }
+
+        }
+
+        consulta.addValueEventListener(postListener)
+        //---------------------------
+        /////////////////////////////
+
+
+
         binding.numeroevento.setText("${elegido}")
 
         cargarLista()
+
 
 
         binding.elegir.setOnClickListener {
@@ -114,57 +168,57 @@ class MainActivity3 : AppCompatActivity() {
 
 
     private fun cargarLista() {
-        val storageRef = FirebaseStorage.getInstance().reference.child("imagenes")
+        //---------------------------
 
-        storageRef.listAll()
-            .addOnSuccessListener {
+
+        val consulta = FirebaseDatabase.getInstance().getReference().child("albumes")
+
+        val postListener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                var datos = ArrayList<String>()
                 listaNombres.clear()
+                for(data in snapshot.children!!){
+                    val idevento = data.getValue<Album>()!!.eventoid
 
-                    var consulta = FirebaseDatabase.getInstance().getReference().child("albumes")
+                    val nimagen = data.getValue<Album>()!!.nombreimagen
 
-                    var id = ""
-
-                    val postListener = object : ValueEventListener {
-                        override fun onDataChange(snapshot: DataSnapshot) {
-                            for(data in snapshot.children){
-                                id = data.getValue<Album>()!!.eventoid.toString()
-                                var nombreimg = data.getValue<Album>()!!.nombreimagen.toString()
-                                if(elegido==id){
-                                    System.out.println(elegido + " = " + id)
-
-                                    listaNombres.add(nombreimg)
-                                }
-
-                            }
-                            mostrarLista(listaNombres)
-
-                        }
-
-                        override fun onCancelled(error: DatabaseError) {
-
-                        }
-
+                    //binding.subir.setText("${idevento.toString()} == ${binding.numeroevento.text.toString()}")
+                    //System.out.println("${id.toString()} == ${binding.numeroevento.text.toString()}")
+                    if(idevento.toString()==binding.numeroevento.text.toString()){
+                        datos.add("${nimagen}")
+                        listaNombres.add(nimagen.toString())
                     }
-                    consulta.addValueEventListener(postListener)
-
-
-                cargarLista()
-                binding.lista.adapter = ArrayAdapter<String>(
-                    this,
-                    android.R.layout.simple_list_item_1, listaNombres
-                )
+                }
+                mostrarLista(datos)
 
                 binding.lista.setOnItemClickListener { adapterView, view, i, l ->
                     cargarImagenRemota(listaNombres.get(i))
-
+                }
+                binding.regresar.setOnClickListener {
+                    finish()
                 }
             }
-            .addOnFailureListener {
+
+            override fun onCancelled(error: DatabaseError) {
 
             }
 
-    }
+        }
 
+        consulta.addValueEventListener(postListener)
+        //---------------------------
+    }
+    fun visibilidadbotones(){
+        if(muestrabotones){
+            binding.elegir.visibility = View.VISIBLE
+            binding.subir.visibility = View.VISIBLE
+            System.out.println("SE PONEN VISIBLES")
+        }else{
+            System.out.println("SE PONEN INVISIBLES")
+            binding.elegir.visibility = View.GONE
+            binding.subir.visibility = View.GONE
+        }
+    }
     private fun cargarImagenRemota(nombreArchivoRemoto: String) {
         val storageRef =
             FirebaseStorage.getInstance().reference.child("imagenes/${nombreArchivoRemoto}")
@@ -208,5 +262,8 @@ class MainActivity3 : AppCompatActivity() {
             }
         }
         return true
+    }
+    fun mostrarMensaje(a:String, b:String){
+        Toast.makeText(this,"${a} == ${b}",Toast.LENGTH_LONG).show()
     }
 }

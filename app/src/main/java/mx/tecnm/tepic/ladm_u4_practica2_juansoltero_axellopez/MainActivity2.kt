@@ -27,11 +27,13 @@ import java.time.LocalDateTime
 
 class MainActivity2() : AppCompatActivity() {
     lateinit var binding:ActivityMain2Binding
-
+    var ultimoid = ""
     var listaIDs = ArrayList<String>()
+    var listaEstados = ArrayList<String>()
     val autenticacion = FirebaseAuth.getInstance()
     var usuariologeado = autenticacion.currentUser?.email.toString()
     val arreglo = ArrayList<String>()
+    var estadoregistro = ""
 
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -43,6 +45,29 @@ class MainActivity2() : AppCompatActivity() {
         binding.crear.setOnClickListener {
             crearEvento()
         }
+
+        binding.revisar.setOnClickListener {
+            var consulta = FirebaseDatabase.getInstance().getReference().child("eventos")
+
+            var postListener = object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    var idactual = binding.album.text.toString()
+                    for (data in snapshot.children){
+                        var id = data.key
+                        var estado = data.getValue<Evento>()!!.estado
+
+                        if(id==idactual){
+                            mostrarMensaje(estado.toString())
+                        }
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+
+                }
+            }
+            consulta.addValueEventListener(postListener)
+        }
         binding.ingresar.setOnClickListener {
             var consulta = FirebaseDatabase.getInstance().getReference().child("eventos")
 
@@ -50,6 +75,7 @@ class MainActivity2() : AppCompatActivity() {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     for (data in snapshot.children){
                         if(binding.album.text.toString()==data.key.toString()){
+
                             invocarOtraVentana(data.key.toString())
                         }
                     }
@@ -70,6 +96,7 @@ class MainActivity2() : AppCompatActivity() {
             override fun onDataChange(snapshot: DataSnapshot) {
                 var datos = ArrayList<String>()
                 listaIDs.clear()
+                listaEstados.clear()
                 arreglo.clear()
                 for(data in snapshot.children!!){
                     if (usuariologeado == data.getValue<Evento>()!!.usuario) {
@@ -78,12 +105,16 @@ class MainActivity2() : AppCompatActivity() {
                         val nombre = data.getValue<Evento>()!!.nombre
                         val fecha = data.getValue<Evento>()!!.fecha
                         val estado = data.getValue<Evento>()!!.estado
+                        val visibilidad = data.getValue<Evento>()!!.visibilidad
+                        listaEstados.add(estado!!.toString())
                         datos.add(
-                            "Nombre: ${nombre}\n Fecha: ${fecha}\n" +
-                                    " estado: ${estado.toString()}"
+                            " Nombre: ${nombre}\n Fecha: ${fecha}\n" +
+                                    " Visibilidad: ${visibilidad.toString()}\n"+
+                                    " Estado: ${estado.toString()}"
                         )
-                        arreglo.add("Nombre: ${nombre}\n Fecha: ${fecha}\n" +
-                                " estado: ${estado.toString()}")
+                        arreglo.add(" Nombre: ${nombre}\n Fecha: ${fecha}\n" +
+                                " Visibilidad: ${visibilidad.toString()}\n"+
+                                " Estado: ${estado.toString()}")
                     }
                 }
                 mostrarLista(datos)
@@ -107,36 +138,38 @@ class MainActivity2() : AppCompatActivity() {
         var cadena4 = cadena3.split(":")
         var nombre = cadena4[1].replace("Fecha","")
         nombre = nombre.substring(1,nombre.length-2)
-        var fecha = cadena4[2]+":"+cadena4[3]+":"+cadena4[4].replace("estado","")
+        var fecha = cadena4[2]+":"+cadena4[3]+":"+cadena4[4].replace("Visibilidad","")
 
         fecha = fecha.substring(1,fecha.length-2)
+        var visible = cadena4[5].replace("Estado","")
+        visible = visible.substring(1,visible.length-2)
 
-        var estado = cadena4[5]
+        var estado = cadena4[6]
 
-        var estado2 = false
+        var estado2 = "false"
 
         if(estado.replace(" ","")=="true"){
 
         }else{
-            estado2 = true
+            estado2 = "true"
         }
 
-        actualizaEstado(nombre,fecha,estado2,idElegido)
+        actualizaEstado(nombre,fecha,estado2,idElegido,visible)
     }
-    fun actualizaEstado(nombre:String,fecha:String,estado:Boolean,idElegido: String){
+    fun actualizaEstado(nombre:String,fecha:String,estado:String,idElegido: String,visibilidad:String){
         var database = FirebaseDatabase.getInstance().getReference("eventos")
 
-        val evento1 = mapOf<String,Boolean>(
-            "estado" to estado
-        )
+
         val evento = mapOf<String,String>(
+            "estado" to estado,
             "fecha" to fecha,
             "nombre" to nombre,
+            "visibilidad" to visibilidad,
             "usuario" to usuariologeado
         )
 
         database.child(idElegido)
-            .updateChildren(evento1+evento)
+            .updateChildren(evento)
             .addOnSuccessListener {
                 setTitle("SE CAMBIO EL ESTADO")
             }
@@ -152,7 +185,7 @@ class MainActivity2() : AppCompatActivity() {
 
         var cadena3 =  binding.lista.getItemAtPosition(posicion).toString()
         var cadena4 = cadena3.split(":")
-        var estado = cadena4[5]
+        var estado = cadena4[6]
 
         var estado2 = "Desactivar"
 
@@ -168,10 +201,28 @@ class MainActivity2() : AppCompatActivity() {
                 .setNegativeButton("ELIMINAR") { d, i ->
                     eliminar(idElegido)
                 }
-                .setPositiveButton(estado2) { d, i ->
-                    actualizar(idElegido, posicion)
+                    //EN ESTADO2 SE ALMACENA SI ESTA EN FALSE O TRUE EL ESTADO
+                .setPositiveButton("Visibilidad / Estado") { d, i ->
+                    //EXTRA ALERT---------------------------------
+                    AlertDialog.Builder(this).setTitle("ATENCION")
+                        .setMessage("Visibilidad / Estado")
+                        .setPositiveButton(estado2) { d, i ->
+                            actualizar(idElegido, posicion)
+                            if(listaEstados.get(posicion).toString()=="true"){
+                                listaEstados.set(posicion,"false")
+                            }else{
+                                listaEstados.set(posicion,"true")
+                            }
+                        }
+                        .setNeutralButton("Ocultar") { d, i ->
+
+                        }
+                        .show()
+                    //--------------------------------------------
                 }
-                .setNeutralButton("CANCELAR") { d, i -> }
+                .setNeutralButton("INGRESAR A ALBUM") { d, i ->
+                    binding.album.setText(listaIDs.get(posicion))
+                }
                 .show()
 
     }
@@ -200,7 +251,7 @@ class MainActivity2() : AppCompatActivity() {
         val asist2 = current.toString().split("T")
 
         val evento = Evento(binding.evento.text.toString(),
-            usuariologeado,asist2.get(0)+" "+asist2.get(1),true)//equivalente a hashmapof
+            usuariologeado,asist2.get(0)+" "+asist2.get(1),"true","visible")//equivalente a hashmapof
 
         basedatos.child("eventos")
             .push().setValue(evento)
@@ -208,12 +259,13 @@ class MainActivity2() : AppCompatActivity() {
                 setTitle("SE INSERTO")
 
                 var consulta = FirebaseDatabase.getInstance().getReference().child("eventos")
-                var ultimoid = ""
+
                 var postListener = object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
                         for (data in snapshot.children){
                             ultimoid = data.key.toString()
                         }
+                        mandamensaje(ultimoid)
                     }
 
                     override fun onCancelled(error: DatabaseError) {
@@ -222,12 +274,7 @@ class MainActivity2() : AppCompatActivity() {
                 }
                 consulta.addValueEventListener(postListener)
 
-                //COPIAR A PORTAPAPELES
-                val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
-                val clip = ClipData.newPlainText("label", ultimoid)
-                clipboard.setPrimaryClip(clip)
-                    Toast.makeText(this, "El código de evento se copio a tu portapapeles.", Toast.LENGTH_LONG).show()
-                //---------------------------------
+
                 binding.evento.text.clear()
             }
             .addOnFailureListener {
@@ -273,13 +320,17 @@ class MainActivity2() : AppCompatActivity() {
         }
         return true
     }
-    fun mandamensaje(){
-        Toast.makeText(this,"SE ENCONTRO EL ID",Toast.LENGTH_LONG).show()
+    fun mandamensaje(a:String){
+        //Toast.makeText(this,"${a}",Toast.LENGTH_LONG).show()
+        binding.album.setText(a)
     }
     private fun invocarOtraVentana(a:String) {
         var intent = Intent(this,MainActivity3::class.java)
         intent.putExtra("idEvento",a)
         startActivity(intent)
+    }
+    fun mostrarMensaje(a:String){
+        Toast.makeText(this,"${a}",Toast.LENGTH_LONG).show()
     }
 
 }
