@@ -128,12 +128,12 @@ class MainActivity2() : AppCompatActivity() {
 
         var estado = cadena4[6]
 
-        var estado2 = "false"
+        var estado2 = "cerrado"
 
-        if(estado.replace(" ","")=="true"){
+        if(estado.replace(" ","")=="abierto"){
 
         }else{
-            estado2 = "true"
+            estado2 = "abierto"
         }
 
         actualizaEstado(nombre,fecha,estado2,idElegido,visible)
@@ -199,12 +199,12 @@ class MainActivity2() : AppCompatActivity() {
         var visible = cadena4[5].replace("Estado","")
         visible = visible.substring(1,visible.length-2)
 
-        var estado2 = "Desactivar"
+        var estado2 = "Cerrar"
 
-        if(estado.replace(" ","")=="true"){
+        if(estado.replace(" ","")=="abierto"){
 
         }else{
-            estado2 = "Activar"
+            estado2 = "Abrir"
         }
 
         var visible2 = "Ocultar"
@@ -228,10 +228,10 @@ class MainActivity2() : AppCompatActivity() {
                         .setMessage("Visibilidad / Estado")
                         .setPositiveButton(estado2) { d, i ->
                             actualizar(idElegido, posicion)
-                            if(listaEstados.get(posicion).toString()=="true"){
-                                listaEstados.set(posicion,"false")
+                            if(listaEstados.get(posicion).toString()=="abierto"){
+                                listaEstados.set(posicion,"cerrado")
                             }else{
-                                listaEstados.set(posicion,"true")
+                                listaEstados.set(posicion,"abierto")
                             }
                         }
                         .setNeutralButton(visible2) { d, i ->
@@ -276,7 +276,7 @@ class MainActivity2() : AppCompatActivity() {
         val asist2 = current.toString().split("T")
 
         val evento = Evento(binding.evento.text.toString(),
-            usuariologeado,asist2.get(0)+" "+asist2.get(1),"true","visible")//equivalente a hashmapof
+            usuariologeado,asist2.get(0)+" "+asist2.get(1),"abierto","visible")//equivalente a hashmapof
 
         basedatos.child("eventos")
             .push().setValue(evento)

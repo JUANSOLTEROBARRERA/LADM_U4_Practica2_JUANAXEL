@@ -51,7 +51,7 @@ class MainActivity3 : AppCompatActivity() {
         //---------------------------
         val consulta = FirebaseDatabase.getInstance().getReference().child("eventos")
         var contadoor = 1
-        var verdad = "true"
+        var verdad = "abierto"
         val postListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
 
