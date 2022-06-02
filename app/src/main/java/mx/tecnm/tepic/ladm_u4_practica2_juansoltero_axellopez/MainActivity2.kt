@@ -223,6 +223,7 @@ class MainActivity2() : AppCompatActivity() {
                     //EN ESTADO2 SE ALMACENA SI ESTA EN FALSE O TRUE EL ESTADO
                 .setPositiveButton("Visibilidad / Estado") { d, i ->
                     //EXTRA ALERT---------------------------------
+                    binding.album.setText("")
                     AlertDialog.Builder(this).setTitle("ATENCION")
                         .setMessage("Visibilidad / Estado")
                         .setPositiveButton(estado2) { d, i ->
