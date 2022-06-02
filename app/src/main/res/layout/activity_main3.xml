@@ -32,9 +32,15 @@
         android:layout_height="wrap_content"
         android:id="@+id/subir"
         android:text="Subir imagen"/>
+
+    <ListView
+        android:id="@+id/lista"
+        android:layout_width="match_parent"
+        android:layout_height="200dp" />
+
     <ListView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/lista"/>
+        android:layout_height="wrap_content"
+        android:id="@+id/listaimagenesxd"/>
 
 </LinearLayout>
