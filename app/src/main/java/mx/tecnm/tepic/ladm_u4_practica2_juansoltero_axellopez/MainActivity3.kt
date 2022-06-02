@@ -31,6 +31,7 @@ class MainActivity3 : AppCompatActivity() {
     lateinit var binding: ActivityMain3Binding
     lateinit var imagen: Uri
     var muestrabotones = false
+    var muestrabotones2 = false
     var elegido = ""
     var estregistro = ""
     var contador = 1
@@ -40,7 +41,7 @@ class MainActivity3 : AppCompatActivity() {
         binding = ActivityMain3Binding.inflate(layoutInflater)
         setContentView(binding.root)
 
-
+        binding.oculto.visibility = View.GONE
 
         elegido = intent.extras!!.getString("idEvento")!!
 
@@ -52,6 +53,7 @@ class MainActivity3 : AppCompatActivity() {
         val consulta = FirebaseDatabase.getInstance().getReference().child("eventos")
         var contadoor = 1
         var verdad = "abierto"
+        var visible = "visible"
         val postListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
 
@@ -59,7 +61,7 @@ class MainActivity3 : AppCompatActivity() {
 
                     var id = data.key
                     var estadoo = data.getValue<Evento>()!!.estado
-
+                    var visibilidad = data.getValue<Evento>()!!.visibilidad
 
                     if(id.toString()==elegido){
 
@@ -71,11 +73,15 @@ class MainActivity3 : AppCompatActivity() {
                             System.out.println("CAMBIO ESTADO DE BANDERA")
                             muestrabotones = true
                         }
+                        if(visible?.equals(visibilidad.toString() ?: (visibilidad === null)) ){
+                                muestrabotones2 = true
+                        }
                     }
 
 
                 }
                 visibilidadbotones()
+                visibilidadbotones2()
 
             }
 
@@ -216,6 +222,16 @@ class MainActivity3 : AppCompatActivity() {
             System.out.println("SE PONEN INVISIBLES")
             binding.elegir.visibility = View.GONE
             binding.subir.visibility = View.GONE
+        }
+    }
+    fun visibilidadbotones2(){
+        if(muestrabotones2){
+            System.out.println("SE PONEN VISIBLES")
+        }else{
+            binding.numeroevento.visibility = View.GONE
+            binding.oculto.visibility = View.VISIBLE
+            binding.imagen.visibility = View.GONE
+            binding.lista.visibility = View.GONE
         }
     }
     private fun cargarImagenRemota(nombreArchivoRemoto: String) {

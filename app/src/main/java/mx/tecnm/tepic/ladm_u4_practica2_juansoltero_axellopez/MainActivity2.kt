@@ -153,7 +153,7 @@ class MainActivity2() : AppCompatActivity() {
         database.child(idElegido)
             .updateChildren(evento)
             .addOnSuccessListener {
-                setTitle("SE CAMBIO EL ESTADO")
+                Toast.makeText(this,"SE REALIZO EL CAMBIO",Toast.LENGTH_LONG).show()
             }
             .addOnFailureListener {
                 AlertDialog.Builder(this)
@@ -227,6 +227,14 @@ class MainActivity2() : AppCompatActivity() {
                     AlertDialog.Builder(this).setTitle("ATENCION")
                         .setMessage("Visibilidad / Estado")
                         .setPositiveButton(estado2) { d, i ->
+
+                            if(listaVisibilidad.get(posicion).toString()=="visible"){
+
+                            }else{
+                                AlertDialog.Builder(this).setMessage("Debe hacer visible el evento para" +
+                                        " poder abrirlo.").setTitle("ATENCIÓN").show()
+                                    return@setPositiveButton
+                            }
                             actualizar(idElegido, posicion)
                             if(listaEstados.get(posicion).toString()=="abierto"){
                                 listaEstados.set(posicion,"cerrado")
@@ -235,11 +243,16 @@ class MainActivity2() : AppCompatActivity() {
                             }
                         }
                         .setNeutralButton(visible2) { d, i ->
-                            actualizar2(idElegido, posicion)
-                            if(listaVisibilidad.get(posicion).toString()=="visible"){
-                                listaVisibilidad.set(posicion,"oculto")
+                            if(listaEstados.get(posicion).toString()=="cerrado"){
+                                actualizar2(idElegido, posicion)
+                                if(listaVisibilidad.get(posicion).toString()=="visible"){
+                                    listaVisibilidad.set(posicion,"oculto")
+                                }else{
+                                    listaVisibilidad.set(posicion,"visible")
+                                }
                             }else{
-                                listaVisibilidad.set(posicion,"visible")
+                                AlertDialog.Builder(this).setMessage("Debe cerrar el evento para" +
+                                        " poder ocultarlo.").setTitle("ATENCIÓN").show()
                             }
                         }
                         .show()
@@ -258,7 +271,7 @@ class MainActivity2() : AppCompatActivity() {
         basedatos.child(idElegido)
             .removeValue()
             .addOnSuccessListener {
-                setTitle("SE ELIMINO")
+                Toast.makeText(this,"SE ELIMINO EL REGISTRO.",Toast.LENGTH_LONG).show()
             }
             .addOnFailureListener {
                 AlertDialog.Builder(this)
@@ -281,7 +294,7 @@ class MainActivity2() : AppCompatActivity() {
         basedatos.child("eventos")
             .push().setValue(evento)
             .addOnSuccessListener {
-                setTitle("SE INSERTO")
+                Toast.makeText(this,"SE CREO EVENTO",Toast.LENGTH_LONG).show()
 
                 var consulta = FirebaseDatabase.getInstance().getReference().child("eventos")
 

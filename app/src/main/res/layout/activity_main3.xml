@@ -8,16 +8,17 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity3">
 
+    <ImageButton
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background="@drawable/ren2"
+        android:id="@+id/regresar"
+        android:text="Regresar"/>
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/numeroevento"
         android:text="Evento: "/>
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/regresar"
-        android:text="Regresar"/>
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -43,4 +44,14 @@
         android:layout_height="wrap_content"
         android:id="@+id/listaimagenesxd"/>
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/oculto"
+        android:textSize="20dp"
+        android:textStyle="bold"
+        android:layout_marginLeft="15dp"
+        android:textColor="#454545"
+        android:layout_marginTop="20dp"
+        android:text="EL evento al que intentas acceder fue ocultado por su creador."/>
 </LinearLayout>
