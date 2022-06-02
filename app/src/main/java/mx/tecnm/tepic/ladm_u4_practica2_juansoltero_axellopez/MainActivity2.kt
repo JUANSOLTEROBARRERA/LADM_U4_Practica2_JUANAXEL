@@ -30,6 +30,7 @@ class MainActivity2() : AppCompatActivity() {
     var ultimoid = ""
     var listaIDs = ArrayList<String>()
     var listaEstados = ArrayList<String>()
+    var listaVisibilidad = ArrayList<String>()
     val autenticacion = FirebaseAuth.getInstance()
     var usuariologeado = autenticacion.currentUser?.email.toString()
     val arreglo = ArrayList<String>()
@@ -46,28 +47,7 @@ class MainActivity2() : AppCompatActivity() {
             crearEvento()
         }
 
-        binding.revisar.setOnClickListener {
-            var consulta = FirebaseDatabase.getInstance().getReference().child("eventos")
-
-            var postListener = object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    var idactual = binding.album.text.toString()
-                    for (data in snapshot.children){
-                        var id = data.key
-                        var estado = data.getValue<Evento>()!!.estado
-
-                        if(id==idactual){
-                            mostrarMensaje(estado.toString())
-                        }
-                    }
-                }
-
-                override fun onCancelled(error: DatabaseError) {
-
-                }
-            }
-            consulta.addValueEventListener(postListener)
-        }
+        
         binding.ingresar.setOnClickListener {
             var consulta = FirebaseDatabase.getInstance().getReference().child("eventos")
 
@@ -97,6 +77,7 @@ class MainActivity2() : AppCompatActivity() {
                 var datos = ArrayList<String>()
                 listaIDs.clear()
                 listaEstados.clear()
+                listaVisibilidad.clear()
                 arreglo.clear()
                 for(data in snapshot.children!!){
                     if (usuariologeado == data.getValue<Evento>()!!.usuario) {
@@ -107,6 +88,7 @@ class MainActivity2() : AppCompatActivity() {
                         val estado = data.getValue<Evento>()!!.estado
                         val visibilidad = data.getValue<Evento>()!!.visibilidad
                         listaEstados.add(estado!!.toString())
+                        listaVisibilidad.add(visibilidad!!.toString())
                         datos.add(
                             " Nombre: ${nombre}\n Fecha: ${fecha}\n" +
                                     " Visibilidad: ${visibilidad.toString()}\n"+
@@ -180,12 +162,42 @@ class MainActivity2() : AppCompatActivity() {
                     .show()
             }
     }
+
+    //--------------------------------ACTUALIZA VISIBILIDAD--------------------------------------
+    fun actualizar2(idElegido: String, posicion: Int){
+        var basedatos = FirebaseDatabase.getInstance().getReference("eventos")
+
+        var cadena3 =  binding.lista.getItemAtPosition(posicion).toString()
+        var cadena4 = cadena3.split(":")
+        var nombre = cadena4[1].replace("Fecha","")
+        nombre = nombre.substring(1,nombre.length-2)
+        var fecha = cadena4[2]+":"+cadena4[3]+":"+cadena4[4].replace("Visibilidad","")
+
+        fecha = fecha.substring(1,fecha.length-2)
+        var visible = cadena4[5].replace("Estado","")
+        visible = visible.substring(1,visible.length-2)
+
+        var estado = cadena4[6].replace(" ","")
+
+        var visible2 = "oculto"
+
+        if(visible.replace(" ","")=="visible"){
+
+        }else{
+            visible2 = "visible"
+        }
+
+        actualizaEstado(nombre,fecha,estado,idElegido,visible2)
+    }
+    //-------------------------------------------------------------------------------------------
     private fun dialogo(posicion: Int) {
         var idElegido = listaIDs.get(posicion)
 
         var cadena3 =  binding.lista.getItemAtPosition(posicion).toString()
         var cadena4 = cadena3.split(":")
         var estado = cadena4[6]
+        var visible = cadena4[5].replace("Estado","")
+        visible = visible.substring(1,visible.length-2)
 
         var estado2 = "Desactivar"
 
@@ -195,6 +207,13 @@ class MainActivity2() : AppCompatActivity() {
             estado2 = "Activar"
         }
 
+        var visible2 = "Ocultar"
+
+        if(visible.replace(" ","")=="visible"){
+
+        }else{
+            visible2 = "Hacer Visible"
+        }
 
             AlertDialog.Builder(this).setTitle("ATENCION")
                 .setMessage("¿QUÉ DESEAS HACER CON\n${arreglo.get(posicion)}?")
@@ -214,8 +233,13 @@ class MainActivity2() : AppCompatActivity() {
                                 listaEstados.set(posicion,"true")
                             }
                         }
-                        .setNeutralButton("Ocultar") { d, i ->
-
+                        .setNeutralButton(visible2) { d, i ->
+                            actualizar2(idElegido, posicion)
+                            if(listaVisibilidad.get(posicion).toString()=="visible"){
+                                listaVisibilidad.set(posicion,"oculto")
+                            }else{
+                                listaVisibilidad.set(posicion,"visible")
+                            }
                         }
                         .show()
                     //--------------------------------------------
